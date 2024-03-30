@@ -1,1 +1,1 @@
-# expenseappgocd
+# gocd-expenseapp

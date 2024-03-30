@@ -1,0 +1,85 @@
+- name: disable nodejs
+  ansible.builtin.shell: dnf module disable nodejs -y
+
+- name: enable nodejs v20
+  ansible.builtin.shell: dnf module disable nodejs -y
+
+- name: install nodejs
+  ansible.builtin.dnf:
+    name:  nodejs
+    state: latest
+
+- name : user add expense
+  ansible.builtin.user:
+    name: expense
+
+- name: Removing the directory    #precheck from the frontend
+  ansible.builtin.file:
+    path: /app            
+    state: absent
+
+- name: Create a directory 
+  ansible.builtin.file:
+    path: /app 
+    state: directory
+
+- name: Download and extrart file
+  ansible.builtin.unarchive:
+    src:  https://expense-artifacts.s3.amazonaws.com/expense-backend-v2.zip 
+    dest: /app
+    remote_src: yes
+
+- name: Nodejs Dependency
+  community.general.npm:
+    path: /app
+    state: latest
+
+- name: copying the backend service
+  ansible.builtin.copy:
+    src: roles/backend/Files/backend.service
+    dest: /etc/systemd/system/backend.service
+
+- name: install python MYSQL Client
+  ansible.builtin.pip:
+    name:  
+      - PyMySQL
+      - cryptography
+    executable: pip3.9
+
+
+- name: Install mysql client
+  ansible.builtin.dnf:
+    name: mysql
+    state: latest
+
+- name: Load schema 
+  community.mysql.mysql_db:
+    state: import
+    name:  all
+    target: /app/schema/backend.sql 
+    login_user: root
+    login_password: ExpenseApp@1
+    login_host: mysql-dev.patelvamshidhardevops.online
+
+- name: start service
+  ansible.builtin.systemd_service:
+    name: backend
+    state: restarted
+    enabled: yes
+    daemon-reload: yes
+
+#NOTE: if u get the error in the installing the mysql go to the backend server and install the below two app in the root user
+#sudo -i 
+#pip3.9 install PyMySQL
+#sudo pip3.9 install cryptography
+
+  
+
+
+
+
+
+
+
+
+
